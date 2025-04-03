@@ -57,7 +57,12 @@ final class OnboardingController extends AbstractController
     #[Route('/onboarding/step-two', name: 'app_onboarding_step_two')]
     public function stepTwo(Request $request, SessionInterface $session): Response
     {
-        // dd();
+        // Check if user completed step one
+        $userData = $session->get('onboarding_user_data');
+        if (!$userData) {
+            return $this->redirectToRoute('app_onboarding_step_one');
+        }
+
         // Set current step
         $session->set('onboarding_current_step', 2);
 
@@ -73,6 +78,13 @@ final class OnboardingController extends AbstractController
             // Store form data in session
             $formData = $form->getData();
             $session->set('onboarding_address_data', $formData);
+            // Determine next step based on subscription type
+            if ($userData['subscriptionType'] === 'premium') {
+                return $this->redirectToRoute('app_onboarding_step_three');
+            } else {
+                // Skip payment step for free subscription
+                return $this->redirectToRoute('app_onboarding_step_confirm');
+            }
 
         }
         return $this->render('onboarding/step_two.html.twig', [
@@ -91,7 +103,19 @@ final class OnboardingController extends AbstractController
     #[Route('/onboarding/step-three', name: 'app_onboarding_step_three')]
     public function stepThree(Request $request, SessionInterface $session): Response
     {
-        $payment = new Payment();
+       // Check if user completed previous steps
+       $userData = $session->get('onboarding_user_data');
+       $addressData = $session->get('onboarding_address_data');
+       
+       if (!$userData || !$addressData) {
+           return $this->redirectToRoute('app_onboarding_step_one');
+       }
+       
+       // Check if payment step should be skipped
+       if ($userData['subscriptionType'] !== 'premium') {
+           return $this->redirectToRoute('app_onboarding_step_confirm');
+       }
+       
         // Set current step
         $session->set('onboarding_current_step', 3);
         
@@ -120,4 +144,46 @@ final class OnboardingController extends AbstractController
         $session->set('onboarding_current_step', 2);
         return $this->redirectToRoute('app_onboarding_step_two');
     }
+
+
+    #[Route('/onboarding/back-to-step-three', name: 'onboarding_back_to_step_three')]
+    public function backToStepThree(SessionInterface $session): Response
+    {
+        $session->set('onboarding_current_step', 3);
+        return $this->redirectToRoute('app_onboarding_step_three');
+    }
+
+
+    #[Route('/onboarding/confirm', name: 'app_onboarding_step_confirm')]
+    public function confirm(Request $request, SessionInterface $session): Response
+    {
+        // Check if user completed previous steps
+        $userData = $session->get('onboarding_user_data');
+        $addressData = $session->get('onboarding_address_data');
+        
+        if (!$userData || !$addressData) {
+            return $this->redirectToRoute('app_onboarding_step_one');
+        }
+        
+        // Set current step
+        $session->set('onboarding_current_step', 4);
+        
+        // Get payment data if exists
+        $paymentData = $session->get('onboarding_payment_data', null);
+        
+        // Check if payment data is required but missing
+        if ($userData['subscriptionType'] === 'premium' && !$paymentData) {
+            return $this->redirectToRoute('app_onboarding_step_three');
+        }
+        
+        return $this->render('onboarding/step_confirm.html.twig', [
+            'user' => $userData,
+            'address' => $addressData,
+            'payment' => $paymentData,
+            'current_step' => 4,
+        ]);
+    }
 }
+
+
+
