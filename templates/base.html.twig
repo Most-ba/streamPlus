@@ -4,18 +4,70 @@
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
+        
          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-        {% endblock %}
-
-       
+        {% block stylesheets %}
+            <style>
+                .form-error {
+                    color: #dc3545;
+                    font-size: 0.875rem;
+                    margin-top: 0.25rem;
+                }
+                
+                /* Progress bar styles */
+                .progress-container {
+                    margin-bottom: 2rem;
+                }
+                
+                .step {
+                    text-align: center;
+                    position: relative;
+                    width: 25%;
+                }
+                
+                .step-circle {
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    background-color: #e9ecef;
+                    color: #6c757d;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto;
+                    font-weight: bold;
+                    border: 2px solid #e9ecef;
+                }
+                
+                .step.active .step-circle {
+                    background-color: #198754;
+                    color: white;
+                    border-color: #198754;
+                }
+                
+                .step-text {
+                    margin-top: 0.5rem;
+                    font-size: 0.875rem;
+                    color: #6c757d;
+                }
+                
+                .step.active .step-text {
+                    color: #198754;
+                    font-weight: bold;
+                }
+            </style>
+         {% endblock %}
     </head>
     <body>
         {% block body %}{% endblock %}
 
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-      {% block javascripts %}
-            {# {% block importmap %}{{ importmap('app') }}{% endblock %} #}
-     {% endblock %}
+    {% block javascripts %}
+        <script>
+            function loadStep(url) {
+                window.location.href = url;
+            }
+        </script>
+    {% endblock %}
     </body>
 </html>

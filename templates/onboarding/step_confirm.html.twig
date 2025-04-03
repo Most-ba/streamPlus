@@ -11,7 +11,7 @@
                     <h3 class="mb-0">StreamPlus Registration</h3>
                 </div>
                 <div class="card-body">
-                    
+                     {% include 'onboarding/_progress.html.twig' with {'current_step': current_step} %}
                     {% include 'onboarding/_step_confirm.html.twig' %}
                 </div>
             </div>

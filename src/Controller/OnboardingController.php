@@ -16,12 +16,13 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class OnboardingController extends AbstractController
 {
-    #[Route('/onborading', name: 'app_onborading')]
-    public function index(): Response
+    #[Route('/onboarding', name: 'app_onboarding')]
+    public function index(Request $request, SessionInterface $session): Response
     {
-        return $this->render('onborading/index.html.twig', [
-            'controller_name' => 'OnboradingController',
-        ]);
+
+        $session->set('onboarding_current_step', 1);
+        
+        return $this->redirectToRoute('app_onboarding_step_one');
     }
 
     #[Route('/onboarding/step-one', name: 'app_onboarding_step_one')]
@@ -135,7 +136,7 @@ final class OnboardingController extends AbstractController
         }
         return $this->render('onboarding/step_three.html.twig', [
             'form' => $form->createView(),
-            'current_step' => 2,
+            'current_step' => 3,
         ]);
     }
 
