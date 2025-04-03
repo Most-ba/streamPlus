@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\AddressType;
 use App\Form\PaymentType;
 use App\Form\UserType;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -104,6 +105,7 @@ final class OnboardingController extends AbstractController
     #[Route('/onboarding/step-three', name: 'app_onboarding_step_three')]
     public function stepThree(Request $request, SessionInterface $session): Response
     {
+        dd("Done");
        // Check if user completed previous steps
        $userData = $session->get('onboarding_user_data');
        $addressData = $session->get('onboarding_address_data');
@@ -159,6 +161,9 @@ final class OnboardingController extends AbstractController
     #[Route('/onboarding/confirm', name: 'app_onboarding_step_confirm')]
     public function confirm(Request $request, SessionInterface $session): Response
     {
+        if( $session->get('onboarding_current_step') == 4){
+            return $this->redirectToRoute('app_onboarding_finalize');
+        }
         // Check if user completed previous steps
         $userData = $session->get('onboarding_user_data');
         $addressData = $session->get('onboarding_address_data');
@@ -185,6 +190,73 @@ final class OnboardingController extends AbstractController
             'current_step' => 4,
         ]);
     }
+
+
+    #[Route('/onboarding/finalize', name: 'app_onboarding_finalize', methods: ['POST'])]
+    public function finalize(Request $request, EntityManagerInterface $entityManager, SessionInterface $session): Response
+    {
+        dd("Done"); 
+        // Validate CSRF token
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('finalize', $submittedToken)) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+        dd("Done");
+        // Get data from session
+        $userData = $session->get('onboarding_user_data');
+        $addressData = $session->get('onboarding_address_data');
+        $paymentData = $session->get('onboarding_payment_data');
+        
+        if (!$userData || !$addressData) {
+            return $this->redirectToRoute('app_onboarding_step_one');
+        }
+        dd("Done");
+        // Create and persist entities
+        $user = new User();
+        $user->setName($userData['name']);
+        $user->setEmail($userData['email']);
+        $user->setPhone($userData['phone']);
+        $user->setSubscriptionType($userData['subscriptionType']);
+        dd("Done");
+        $address = new Address();
+        $address->setLine1($addressData['line1']);
+        if (!empty($addressData['line2'])) {
+            $address->setLine2($addressData['line2']);
+        }
+        $address->setCity($addressData['city']);
+        $address->setState($addressData['state']);
+        $address->setPostalCode($addressData['postalCode']);
+        $address->setCountry($addressData['country']);
+        $address->setUser($user);
+        dd("Done");
+        $entityManager->persist($user);
+        $entityManager->persist($address);
+        dd("Done");
+        // Handle payment if premium subscription
+        if ($userData['subscriptionType'] === 'premium' && $paymentData) {
+            $payment = new Payment();
+            $payment->setCardNumber($paymentData['cardNumber']);
+            $payment->setExpirationDate($paymentData['expirationDate']);
+            $payment->setCvv($paymentData['cvv']);
+            $payment->setUser($user);
+            
+            $entityManager->persist($payment);
+        } dd("Done");
+        
+        $entityManager->flush();
+        dd("Done");
+        // Clear session data
+        $session->remove('onboarding_user_data');
+        $session->remove('onboarding_address_data');
+        $session->remove('onboarding_payment_data');
+        $session->remove('onboarding_current_step');
+        
+        // Add flash message
+        $this->addFlash('success', 'Your registration has been completed successfully!');
+        dd("Done");
+    
+    }
+
 }
 
 

@@ -25,7 +25,7 @@
     {% endif %}
 
     <form id="multi-step-form" method="POST" >
-        <input type="hidden" name="_token" value="{{ csrf_token('finalize') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('finalize') }}" action="{{ path('app_onboarding_finalize') }}">
         <div class="d-flex justify-content-between">
             <button type="button" class="btn btn-secondary" onclick="window.location.href='{% if payment %}{{ path('onboarding_back_to_step_three') }}{% else %}{{ path('onboarding_back_to_step_two') }}{% endif %}'">Back</button>
             <button type="submit" class="btn btn-success">Submit</button>

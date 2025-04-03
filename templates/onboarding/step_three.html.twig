@@ -14,7 +14,7 @@
                      {% include 'onboarding/_progress.html.twig' with {'current_step': current_step} %}
                     <h4 class="mb-4">Step 3: Payment Information</h4>
                     
-                    {{ form_start(form, {'attr': {'id': 'multi-step-form'}}) }}
+                     {{ form_start(form, {'attr': {'id': 'payment-form'}}) }}
                         <div class="mb-3">
                             {{ form_label(form.cardNumber) }}
                             {{ form_widget(form.cardNumber) }}
