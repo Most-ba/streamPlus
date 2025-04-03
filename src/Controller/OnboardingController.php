@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Address;
+use App\Entity\Payment;
 use App\Entity\User;
 use App\Form\AddressType;
+use App\Form\PaymentType;
 use App\Form\UserType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +44,7 @@ final class OnboardingController extends AbstractController
             // Store form data in session
             $formData = $form->getData();
             $session->set('onboarding_user_data', $formData);
-            
+
             return $this->redirectToRoute('app_onboarding_step_two');
         }
         
@@ -83,5 +86,38 @@ final class OnboardingController extends AbstractController
     {
         $session->set('onboarding_current_step', 1);
         return $this->redirectToRoute('app_onboarding_step_one');
+    }
+
+    #[Route('/onboarding/step-three', name: 'app_onboarding_step_three')]
+    public function stepThree(Request $request, SessionInterface $session): Response
+    {
+        $payment = new Payment();
+        // Set current step
+        $session->set('onboarding_current_step', 3);
+        
+        // Get payment data from session or create new
+        $paymentData = $session->get('onboarding_payment_data', []);
+        // Create form
+        $form = $this->createForm(PaymentType::class, null, [
+            'data' => $paymentData,
+        ]);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Store form data in session
+            $formData = $form->getData();
+            $session->set('onboarding_payment_data', $formData);
+        }
+        return $this->render('onboarding/step_three.html.twig', [
+            'form' => $form->createView(),
+            'current_step' => 2,
+        ]);
+    }
+
+    #[Route('/onboarding/back-to-step-two', name: 'onboarding_back_to_step_two')]
+    public function backToStepTwo(SessionInterface $session): Response
+    {
+        $session->set('onboarding_current_step', 2);
+        return $this->redirectToRoute('app_onboarding_step_two');
     }
 }
