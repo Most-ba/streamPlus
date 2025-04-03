@@ -131,6 +131,7 @@ final class OnboardingController extends AbstractController
             // Store form data in session
             $formData = $form->getData();
             $session->set('onboarding_payment_data', $formData);
+            return $this->redirectToRoute('app_onboarding_step_confirm');
         }
         return $this->render('onboarding/step_three.html.twig', [
             'form' => $form->createView(),
