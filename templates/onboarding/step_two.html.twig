@@ -1,0 +1,217 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">StreamPlus Registration</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <h4 class="mb-4">Step 2: Address Information</h4>
+                    
+                    {{ form_start(form, {'attr': {'id': 'multi-step-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(form.country) }}
+                            {{ form_widget(form.country) }}
+                            <div class="form-error">
+                                {{ form_errors(form.country) }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.line1) }}
+                            {{ form_widget(form.line1) }}
+                            <div class="form-error">
+                                {{ form_errors(form.line1) }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.line2) }}
+                            {{ form_widget(form.line2) }}
+                            <div class="form-error">
+                                {{ form_errors(form.line2) }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.city) }}
+                            {{ form_widget(form.city) }}
+                            <div class="form-error">
+                                {{ form_errors(form.city) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div id="state-field">
+                                    {{ form_label(form.state) }}
+                                    {{ form_widget(form.state) }}
+                                    <div class="form-error">
+                                        {{ form_errors(form.state) }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div id="postal-code-field">
+                                    {{ form_label(form.postalCode) }}
+                                    {{ form_widget(form.postalCode) }}
+                                    <div class="form-error">
+                                        {{ form_errors(form.postalCode) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ path('onboarding_back_to_step_one') }}'">Back</button>
+                            <button type="submit" class="btn btn-primary">Next</button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const countrySelect = document.querySelector('#address_country');
+        const stateField = document.querySelector('#state-field');
+        const postalCodeField = document.querySelector('#postal-code-field');
+        const stateInput = document.querySelector('#address_state');
+        const postalCodeInput = document.querySelector('#address_postalCode');
+        
+        if (countrySelect) {
+            // Update field labels and placeholders based on country
+            countrySelect.addEventListener('change', function() {
+                const country = this.value;
+                
+                // Reset form validation errors
+                document.querySelectorAll('.form-error').forEach(el => {
+                    el.innerHTML = '';
+                });
+                
+                switch(country) {
+                    case 'US':
+                        // Update state field
+                        stateField.querySelector('label').textContent = 'State';
+                        stateInput.placeholder = 'Enter your state (e.g., CA, NY)';
+                        stateInput.maxLength = 2;
+                        
+                        // Update postal code field
+                        postalCodeField.querySelector('label').textContent = 'ZIP Code';
+                        postalCodeInput.placeholder = 'Enter your ZIP code (e.g., 12345 or 12345-6789)';
+                        break;
+                        
+                    case 'CA':
+                        // Update state field
+                        stateField.querySelector('label').textContent = 'Province';
+                        stateInput.placeholder = 'Enter your province (e.g., ON, BC)';
+                        stateInput.maxLength = 2;
+                        
+                        // Update postal code field
+                        postalCodeField.querySelector('label').textContent = 'Postal Code';
+                        postalCodeInput.placeholder = 'Enter your postal code (e.g., A1A 1A1)';
+                        break;
+                        
+                    case 'UK':
+                        // Update state field
+                        stateField.querySelector('label').textContent = 'County';
+                        stateInput.placeholder = 'Enter your county';
+                        stateInput.maxLength = 50;
+                        
+                        // Update postal code field
+                        postalCodeField.querySelector('label').textContent = 'Postcode';
+                        postalCodeInput.placeholder = 'Enter your postcode';
+                        break;
+                        
+                    default:
+                        // Default labels
+                        stateField.querySelector('label').textContent = 'State/Province';
+                        stateInput.placeholder = 'Enter your state or province';
+                        stateInput.maxLength = 50;
+                        
+                        postalCodeField.querySelector('label').textContent = 'Postal Code';
+                        postalCodeInput.placeholder = 'Enter your postal code';
+                }
+                
+                // Clear the fields when country changes
+                stateInput.value = '';
+                postalCodeInput.value = '';
+            });
+            
+            // Trigger change event to set initial state based on selected country
+            if (countrySelect.value) {
+                const event = new Event('change');
+                countrySelect.dispatchEvent(event);
+            }
+        }
+        
+        // Client-side validation
+        const form = document.getElementById('multi-step-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                const country = countrySelect.value;
+                
+                // Validate based on country
+                if (country === 'US') {
+                    // Validate US state format
+                    const stateRegex = /^[A-Z]{2}$/;
+                    if (!stateRegex.test(stateInput.value.toUpperCase())) {
+                        showError(stateInput, 'State must be a valid 2-letter US state code (e.g., CA, NY)');
+                        isValid = false;
+                    }
+                    
+                    // Validate US ZIP code format
+                    const zipRegex = /^[0-9]{5}(-[0-9]{4})?$/;
+                    if (!zipRegex.test(postalCodeInput.value)) {
+                        showError(postalCodeInput, 'ZIP code must be in format 12345 or 12345-6789');
+                        isValid = false;
+                    }
+                } else if (country === 'CA') {
+                    // Validate Canadian province format
+                    const provinceRegex = /^[A-Z]{2}$/;
+                    if (!provinceRegex.test(stateInput.value.toUpperCase())) {
+                        showError(stateInput, 'Province must be a valid 2-letter code (e.g., ON, BC)');
+                        isValid = false;
+                    }
+                    
+                    // Validate Canadian postal code format
+                    const postalRegex = /^[A-Z][0-9][A-Z]\s?[0-9][A-Z][0-9]$/i;
+                    if (!postalRegex.test(postalCodeInput.value)) {
+                        showError(postalCodeInput, 'Postal code must be in format A1A 1A1');
+                        isValid = false;
+                    }
+                } else if (country === 'UK') {
+                    // Validate UK postcode format
+                    const postcodeRegex = /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/i;
+                    if (!postcodeRegex.test(postalCodeInput.value)) {
+                        showError(postalCodeInput, 'Please enter a valid UK postcode');
+                        isValid = false;
+                    }
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        function showError(input, message) {
+            const errorDiv = input.parentElement.querySelector('.form-error');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+            }
+        }
+    });
+</script>
+{% endblock %} 
